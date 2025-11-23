@@ -1,44 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="kr">
 <head>
-<meta charset="utf-8" />
-<title>3D Crack Viewer</title>
-
+<meta charset="UTF-8">
+<title>3D 하자 스캔 뷰어</title>
 <style>
-    body { margin: 0; background: black; overflow: hidden; }
+  body {
+    margin: 0;
+    font-family: sans-serif;
+    background: #111;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white;
+  }
+  #startScreen, #loadingScreen, #viewerScreen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+  }
+  #startScreen { display: flex; }
 
-    /* ▶ 스캔하기 버튼 */
-    #scanButton {
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        background: #00C2FF;
-        color: white;
-        padding: 18px 40px;
-        font-size: 22px;
-        border-radius: 50px;
-        border: none;
-        cursor: pointer;
-        display: block;
-    }
+  button {
+    padding: 14px 25px;
+    font-size: 18px;
+    background: #00b7ff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
 
-    /* ▶ 로딩 */
-    #loadingBarContainer {
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        width: 60%;
-        height: 20px;
-        background: #333;
-        border-radius: 20px;
-        display: none;
-    }
-    #loadingBar {
-        height: 100%;
-        width: 0%;
-        background: #00C2FF;
-        border-radius: 20px;
-    }
+  #loadingBarContainer {
+    width: 280px;
+    height: 20px;
+    border: 2px solid white;
+    margin-top: 20px;
+  }
+  #loadingBar {
+    width: 0%;
+    height: 100%;
+    background: #00ff88;
+  }
+
+  model-viewer {
+    width: 100vw;
+    height: 100vh;
+  }
 
     /* ▶ 핫스팟 원형 버튼 */
     .hotspot {
@@ -187,3 +194,4 @@ function closePopup() {
 </script>
 </body>
 </html>
+
