@@ -1,97 +1,86 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>3D Viewer App</title>
+<meta charset="UTF-8">
+<title>3D Scan Viewer</title>
 
-  <!-- 앱처럼 보이기 옵션 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  
-  <!-- model-viewer 불러오기 -->
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
-  <style>
-    body {
-      margin: 0;
-      background: #000;
-      font-family: sans-serif;
-    }
-    model-viewer {
-      width: 100vw;
-      height: 100vh;
-    }
+<style>
+  body { margin: 0; background: #111; color: white; font-family: sans-serif; text-align: center; }
 
-    /* 팝업 스타일 */
-    #infoBox {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.8);
-      color: white;
-      padding: 15px;
-      border-radius: 10px;
-      max-width: 80%;
-      display: none;
-    }
-    #infoImage {
-      width: 100%;
-      border-radius: 8px;
-      margin-bottom: 10px;
-    }
-  </style>
+  #start-screen {
+    width: 100vw; height: 100vh;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+  }
+
+  #start-btn {
+    font-size: 24px; padding: 15px 35px; cursor: pointer;
+    background: #ffb700; border: none; border-radius: 10px;
+  }
+
+  #loading {
+    display: none; flex-direction: column;
+    align-items: center; margin-top: 20px; width: 300px;
+  }
+
+  #progress-bar {
+    width: 100%; height: 10px;
+    background: #333; border-radius: 5px;
+    overflow: hidden;
+  }
+  #progress-bar-fill {
+    width: 0%; height: 100%; background: #00d26a; transition: width 0.3s;
+  }
+
+  #viewer-wrapper { display: none; }
+  model-viewer { width: 100vw; height: 100vh; }
+</style>
+
 </head>
-
 <body>
 
-  <!-- 3D 모델 뷰어 -->
-  <model-viewer id="viewer"
-    src="model crack.glb"
-    auto-rotate
-    camera-controls
-    exposure="1.1"
-    shadow-intensity="1"
-    ar
-    ar-modes="webxr scene-viewer quick-look">
-
-    <!-- 핫스팟 (여기 좌표는 예시, 수정 가능) -->
-    <button slot="hotspot-1" data-position="0 1 0" data-normal="0 1 0" class="hotspot" data-info="part1">
-      ●
-    </button>
-  </model-viewer>
-
-  <!-- 팝업 박스 -->
-  <div id="infoBox">
-    <img id="infoImage" src="">
-    <div id="infoText"></div>
+<!-- 첫 화면 -->
+<div id="start-screen">
+  <button id="start-btn">🔍 스캔하기</button>
+  <div id="loading">
+    <p>스캔 데이터 불러오는 중...</p>
+    <div id="progress-bar"><div id="progress-bar-fill"></div></div>
   </div>
+</div>
 
-  <script>
-    const infoData = {
-      "part1": {
-        img: "image1.jpg",
-        text: "이 부분은 예시 설명입니다."
-      }
-    };
+<!-- 3D 화면 -->
+<div id="viewer-wrapper">
+  <model-viewer id="viewer" src="ㅡmodel crack.glb" camera-controls auto-rotate></model-viewer>
+</div>
 
-    document.querySelectorAll(".hotspot").forEach(h => {
-      h.addEventListener("click", () => {
-        const key = h.dataset.info;
-        document.getElementById("infoImage").src = infoData[key].img;
-        document.getElementById("infoText").innerText = infoData[key].text;
-        document.getElementById("infoBox").style.display = "block";
-      });
-    });
+<script>
+const startBtn = document.getElementById("start-btn");
+const startScreen = document.getElementById("start-screen");
+const loading = document.getElementById("loading");
+const progressBarFill = document.getElementById("progress-bar-fill");
+const viewerWrapper = document.getElementById("viewer-wrapper");
+const viewer = document.getElementById("viewer");
 
-    // 화면 클릭 시 팝업 닫기
-    document.body.addEventListener("click", (e) => {
-      if (!e.target.classList.contains("hotspot"))
-        document.getElementById("infoBox").style.display = "none";
-    });
-  </script>
+// 스캔하기 버튼 누름
+startBtn.addEventListener("click", () => {
+  startBtn.style.display = "none";
+  loading.style.display = "flex";
+
+  // 로딩바 애니메이션
+  let progress = 0;
+  let fakeLoad = setInterval(() => {
+    progress += 4; // 속도 조절 가능
+    progressBarFill.style.width = progress + "%";
+
+    if (progress >= 100) {
+      clearInterval(fakeLoad);
+      startScreen.style.display = "none";
+      viewerWrapper.style.display = "block";
+    }
+  }, 120);
+});
+</script>
 
 </body>
 </html>
-
