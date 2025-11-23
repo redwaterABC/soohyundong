@@ -19,9 +19,8 @@
     flex-direction: column;
     align-items: center;
   }
-  #startScreen {
-    display: flex;
-  }
+  #startScreen { display: flex; }
+
   button {
     padding: 14px 25px;
     font-size: 18px;
@@ -30,6 +29,7 @@
     border-radius: 6px;
     cursor: pointer;
   }
+
   #loadingBarContainer {
     width: 280px;
     height: 20px;
@@ -41,23 +41,42 @@
     height: 100%;
     background: #00ff88;
   }
+
   model-viewer {
     width: 100vw;
     height: 100vh;
   }
 
-  /* 팝업 */
+  /* --------- 핫스팟 원형 버튼 --------- */
+  .hotspot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 3px solid #00b7ff;
+    background: rgba(0, 183, 255, 0.4);
+    cursor: pointer;
+  }
+  .hotspot:hover {
+    background: rgba(0, 255, 255, 0.7);
+    transform: scale(1.2);
+  }
+
+  /* --------- 팝업 --------- */
   #popup {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    bottom: 20px;
+    right: 20px;
     background: rgba(0,0,0,0.9);
     border-radius: 10px;
     padding: 20px;
-    width: 300px;
+    width: 260px;
     display: none;
     text-align: center;
+    animation: fade 0.3s;
+  }
+  @keyframes fade {
+    from {opacity: 0; transform: translateY(20px);}
+    to {opacity: 1; transform: translateY(0);}
   }
   #popup img {
     width: 100%;
@@ -69,7 +88,6 @@
   }
 </style>
 
-<!-- model-viewer -->
 <script type="module"
   src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
 </script>
@@ -79,30 +97,32 @@
 
 <!-- 시작 화면 -->
 <div id="startScreen">
-  <h2>3D 스캔 분석 시작</h2>
+  <h2>건축관 3D 스캔</h2>
   <button onclick="beginLoading()">스캔하기</button>
 </div>
 
 <!-- 로딩 화면 -->
 <div id="loadingScreen">
   <h3>스캔 중...</h3>
-  <div id="loadingBarContainer">
-    <div id="loadingBar"></div>
-  </div>
+  <div id="loadingBarContainer"><div id="loadingBar"></div></div>
 </div>
 
-<!-- 3D 뷰어 -->
+<!-- 3D 뷰어 화면 -->
 <div id="viewerScreen">
-  <model-viewer src="model-crack.glb"
-    camera-controls auto-rotate exposure="1.1" environment-image="neutral">
-    
-    <!-- 핫스팟 -->
+  <model-viewer src="model-crack.glb" camera-controls auto-rotate exposure="1.1" environment-image="neutral">
+
+    <!-- 4개 핫스팟 -->
     <button slot="hotspot-1" data-position="0 0.7 0.2" class="hotspot"
       onclick="showPopup('a.jpg', '벽 균열')"></button>
+
     <button slot="hotspot-2" data-position="-0.4 0.5 0.1" class="hotspot"
       onclick="showPopup('b.jpg', '벽 누수 의심')"></button>
+
     <button slot="hotspot-3" data-position="0.3 0.2 -0.2" class="hotspot"
       onclick="showPopup('c.jpg', '벽 크랙 이상')"></button>
+
+    <button slot="hotspot-4" data-position="0.15 -0.1 0.3" class="hotspot"
+      onclick="showPopup('d.jpg', '황현동')"></button>
 
   </model-viewer>
 </div>
@@ -118,6 +138,7 @@
 function beginLoading() {
   document.getElementById("startScreen").style.display = "none";
   document.getElementById("loadingScreen").style.display = "flex";
+
   let bar = document.getElementById("loadingBar");
   let width = 0;
   let timer = setInterval(() => {
