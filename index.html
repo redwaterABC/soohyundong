@@ -19,8 +19,9 @@
     flex-direction: column;
     align-items: center;
   }
-  #startScreen { display: flex; }
-
+  #startScreen {
+    display: flex;
+  }
   button {
     padding: 14px 25px;
     font-size: 18px;
@@ -29,7 +30,6 @@
     border-radius: 6px;
     cursor: pointer;
   }
-
   #loadingBarContainer {
     width: 280px;
     height: 20px;
@@ -41,157 +41,108 @@
     height: 100%;
     background: #00ff88;
   }
-
   model-viewer {
     width: 100vw;
     height: 100vh;
   }
 
-    /* ▶ 핫스팟 원형 버튼 */
-    .hotspot {
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        border: 3px solid #00C2FF;
-        background: rgba(0, 194, 255, 0.2);
-        position: absolute;
-        cursor: pointer;
-        transform: translate(-50%, -50%);
-    }
-
-    /* ▶ 팝업 */
-    .popup {
-        position: absolute;
-        top: 10%; left: 50%;
-        transform: translateX(-50%);
-        width: 380px;
-        background: rgba(0,0,0,0.85);
-        border: 2px solid #00C2FF;
-        border-radius: 10px;
-        padding: 10px;
-        display: none;
-    }
-    .popup img {
-        width: 100%;
-        border-radius: 8px;
-    }
-    .popup-text {
-        color: white;
-        margin-top: 10px;
-        font-size: 18px;
-        text-align: center;
-    }
-    .popup-close {
-        color: #00C2FF;
-        font-size: 20px;
-        text-align: right;
-        cursor: pointer;
-    }
+  /* 팝업 */
+  #popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.9);
+    border-radius: 10px;
+    padding: 20px;
+    width: 300px;
+    display: none;
+    text-align: center;
+  }
+  #popup img {
+    width: 100%;
+    border-radius: 6px;
+  }
+  #popup button {
+    margin-top: 12px;
+    background: #ff4444;
+  }
 </style>
+
+<!-- model-viewer -->
+<script type="module"
+  src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
+</script>
 </head>
 
 <body>
-<button id="scanButton">스캔하기</button>
 
-<div id="loadingBarContainer">
+<!-- 시작 화면 -->
+<div id="startScreen">
+  <h2>건축관 3D 스캔 시작</h2>
+  <button onclick="beginLoading()">스캔하기</button>
+</div>
+
+<!-- 로딩 화면 -->
+<div id="loadingScreen">
+  <h3>스캔 중...</h3>
+  <div id="loadingBarContainer">
     <div id="loadingBar"></div>
+  </div>
 </div>
 
-<div id="popup" class="popup">
-    <div class="popup-close" onclick="closePopup()">✕</div>
-    <img id="popupImg">
-    <div id="popupText" class="popup-text"></div>
+<!-- 3D 뷰어 -->
+<div id="viewerScreen">
+  <model-viewer src="model-crack.glb"
+    camera-controls auto-rotate exposure="1.1" environment-image="neutral">
+    
+    <!-- 핫스팟 -->
+    <button slot="hotspot-1" data-position="0 0.7 0.2" class="hotspot"
+      onclick="showPopup('a.jpg', '벽 균열')"></button>
+    <button slot="hotspot-2" data-position="-0.4 0.5 0.1" class="hotspot"
+      onclick="showPopup('b.jpg', '벽 누수 의심')"></button>
+    <button slot="hotspot-3" data-position="0.3 0.2 -0.2" class="hotspot"
+      onclick="showPopup('c.jpg', '벽 크랙 이상')"></button>
+    <button slot="hotspot-4" data-position="3 3 3" class="hotspot"
+      onclick="showPopup('d.jpg', '황현동')"></button>
+
+  </model-viewer>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.170.0/examples/js/controls/OrbitControls.js"></script>
+<!-- 팝업 -->
+<div id="popup">
+  <img id="popupImage">
+  <p id="popupText"></p>
+  <button onclick="hidePopup()">닫기</button>
+</div>
 
 <script>
-let scene, camera, renderer, controls, model;
-
-document.getElementById("scanButton").onclick = () => {
-    document.getElementById("scanButton").style.display = "none";
-    document.getElementById("loadingBarContainer").style.display = "block";
-    load3DModel();
-};
-
-function load3DModel() {
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 500);
-    camera.position.set(0, 1, 3);
-
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-    const loader = new THREE.GLTFLoader();
-    loader.load(
-        "modelcrack.glb",
-        (glb) => {
-            model = glb.scene;
-            scene.add(model);
-            document.getElementById("loadingBarContainer").style.display = "none";
-            createHotspots();
-        },
-        (xhr) => {
-            const percent = (xhr.loaded / xhr.total) * 100;
-            document.getElementById("loadingBar").style.width = percent + "%";
-        },
-        () => alert("모델 로딩 실패")
-    );
-
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1));
-    function animate() {
-        requestAnimationFrame(animate);
-        renderer.render(scene, camera);
+function beginLoading() {
+  document.getElementById("startScreen").style.display = "none";
+  document.getElementById("loadingScreen").style.display = "flex";
+  let bar = document.getElementById("loadingBar");
+  let width = 0;
+  let timer = setInterval(() => {
+    width += 2;
+    bar.style.width = width + "%";
+    if (width >= 100) {
+      clearInterval(timer);
+      document.getElementById("loadingScreen").style.display = "none";
+      document.getElementById("viewerScreen").style.display = "flex";
     }
-    animate();
+  }, 40);
 }
 
-/* 🔥 Hotspot 4개 */
-const hotspotData = [
-    { position: [3, -3, 3], image: "a.jpg", text: "벽 균열" },
-    { position: [-0.1, 1.00, 0.2], image: "b.jpg", text: "벽 누수 의심" },
-    { position: [0.5, 0.95, 0.3], image: "c.jpg", text: "벽 크랙 이상" },
-    { position: [-0.4, 0.85, 0.5], image: "d.jpg", text: "황현동" }
-];
-
-function createHotspots() {
-    hotspotData.forEach((spot) => {
-        const div = document.createElement("div");
-        div.className = "hotspot";
-        document.body.appendChild(div);
-
-        div.onclick = () => openPopup(spot.image, spot.text);
-
-        div.updatePosition = () => {
-            const pos = new THREE.Vector3(...spot.position);
-            pos.project(camera);
-            div.style.left = ((pos.x + 1) / 2) * window.innerWidth + "px";
-            div.style.top  = ((-pos.y + 1) / 2) * window.innerHeight + "px";
-        };
-
-        function update() {
-            if (model) div.updatePosition();
-            requestAnimationFrame(update);
-        }
-        update();
-    });
+function showPopup(img, text) {
+  document.getElementById("popupImage").src = img;
+  document.getElementById("popupText").innerText = text;
+  document.getElementById("popup").style.display = "block";
 }
 
-/* 팝업 */
-function openPopup(img, text) {
-    document.getElementById("popupImg").src = img;
-    document.getElementById("popupText").innerText = text;
-    document.getElementById("popup").style.display = "block";
-}
-function closePopup() {
-    document.getElementById("popup").style.display = "none";
+function hidePopup() {
+  document.getElementById("popup").style.display = "none";
 }
 </script>
+
 </body>
 </html>
-
