@@ -1,85 +1,145 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="kr">
 <head>
 <meta charset="UTF-8">
-<title>3D Scan Viewer</title>
-
-<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-
+<title>3D 하자 스캔 뷰어</title>
 <style>
-  body { margin: 0; background: #111; color: white; font-family: sans-serif; text-align: center; }
-
-  #start-screen {
-    width: 100vw; height: 100vh;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
+  body {
+    margin: 0;
+    font-family: sans-serif;
+    background: #111;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white;
+  }
+  #startScreen, #loadingScreen, #viewerScreen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+  }
+  #startScreen {
+    display: flex;
+  }
+  button {
+    padding: 14px 25px;
+    font-size: 18px;
+    background: #00b7ff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  #loadingBarContainer {
+    width: 280px;
+    height: 20px;
+    border: 2px solid white;
+    margin-top: 20px;
+  }
+  #loadingBar {
+    width: 0%;
+    height: 100%;
+    background: #00ff88;
+  }
+  model-viewer {
+    width: 100vw;
+    height: 100vh;
   }
 
-  #start-btn {
-    font-size: 24px; padding: 15px 35px; cursor: pointer;
-    background: #ffb700; border: none; border-radius: 10px;
+  /* 팝업 */
+  #popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.9);
+    border-radius: 10px;
+    padding: 20px;
+    width: 300px;
+    display: none;
+    text-align: center;
   }
-
-  #loading {
-    display: none; flex-direction: column;
-    align-items: center; margin-top: 20px; width: 300px;
+  #popup img {
+    width: 100%;
+    border-radius: 6px;
   }
-
-  #progress-bar {
-    width: 100%; height: 10px;
-    background: #333; border-radius: 5px;
-    overflow: hidden;
+  #popup button {
+    margin-top: 12px;
+    background: #ff4444;
   }
-  #progress-bar-fill {
-    width: 0%; height: 100%; background: #00d26a; transition: width 0.3s;
-  }
-
-  #viewer-wrapper { display: none; }
-  model-viewer { width: 100vw; height: 100vh; }
 </style>
 
+<!-- model-viewer -->
+<script type="module"
+  src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
+</script>
 </head>
+
 <body>
 
-<!-- 첫 화면 -->
-<div id="start-screen">
-  <button id="start-btn">🔍 스캔하기</button>
-  <div id="loading">
-    <p>스캔 데이터 불러오는 중...</p>
-    <div id="progress-bar"><div id="progress-bar-fill"></div></div>
+<!-- 시작 화면 -->
+<div id="startScreen">
+  <h2>3D 스캔 분석 시작</h2>
+  <button onclick="beginLoading()">스캔하기</button>
+</div>
+
+<!-- 로딩 화면 -->
+<div id="loadingScreen">
+  <h3>스캔 중...</h3>
+  <div id="loadingBarContainer">
+    <div id="loadingBar"></div>
   </div>
 </div>
 
-<!-- 3D 화면 -->
-<div id="viewer-wrapper">
-  <model-viewer id="viewer" src="ㅡmodel crack.glb" camera-controls auto-rotate></model-viewer>
+<!-- 3D 뷰어 -->
+<div id="viewerScreen">
+  <model-viewer src="model-crack.glb"
+    camera-controls auto-rotate exposure="1.1" environment-image="neutral">
+    
+    <!-- 핫스팟 -->
+    <button slot="hotspot-1" data-position="0 0.7 0.2" class="hotspot"
+      onclick="showPopup('a.jpg', '벽 균열')"></button>
+    <button slot="hotspot-2" data-position="-0.4 0.5 0.1" class="hotspot"
+      onclick="showPopup('b.jpg', '벽 누수 의심')"></button>
+    <button slot="hotspot-3" data-position="0.3 0.2 -0.2" class="hotspot"
+      onclick="showPopup('c.jpg', '벽 크랙 이상')"></button>
+
+  </model-viewer>
+</div>
+
+<!-- 팝업 -->
+<div id="popup">
+  <img id="popupImage">
+  <p id="popupText"></p>
+  <button onclick="hidePopup()">닫기</button>
 </div>
 
 <script>
-const startBtn = document.getElementById("start-btn");
-const startScreen = document.getElementById("start-screen");
-const loading = document.getElementById("loading");
-const progressBarFill = document.getElementById("progress-bar-fill");
-const viewerWrapper = document.getElementById("viewer-wrapper");
-const viewer = document.getElementById("viewer");
-
-// 스캔하기 버튼 누름
-startBtn.addEventListener("click", () => {
-  startBtn.style.display = "none";
-  loading.style.display = "flex";
-
-  // 로딩바 애니메이션
-  let progress = 0;
-  let fakeLoad = setInterval(() => {
-    progress += 4; // 속도 조절 가능
-    progressBarFill.style.width = progress + "%";
-
-    if (progress >= 100) {
-      clearInterval(fakeLoad);
-      startScreen.style.display = "none";
-      viewerWrapper.style.display = "block";
+function beginLoading() {
+  document.getElementById("startScreen").style.display = "none";
+  document.getElementById("loadingScreen").style.display = "flex";
+  let bar = document.getElementById("loadingBar");
+  let width = 0;
+  let timer = setInterval(() => {
+    width += 2;
+    bar.style.width = width + "%";
+    if (width >= 100) {
+      clearInterval(timer);
+      document.getElementById("loadingScreen").style.display = "none";
+      document.getElementById("viewerScreen").style.display = "flex";
     }
-  }, 120);
-});
+  }, 40);
+}
+
+function showPopup(img, text) {
+  document.getElementById("popupImage").src = img;
+  document.getElementById("popupText").innerText = text;
+  document.getElementById("popup").style.display = "block";
+}
+
+function hidePopup() {
+  document.getElementById("popup").style.display = "none";
+}
 </script>
 
 </body>
